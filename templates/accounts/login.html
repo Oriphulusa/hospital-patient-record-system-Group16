@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block anon %}
+<div class="d-flex align-items-center justify-content-center" style="min-height:100vh;background:linear-gradient(135deg,#0f172a,#1e3a8a);">
+  <div class="card shadow" style="width:380px;">
+    <div class="card-body p-4">
+      <h4 class="mb-1"><i class="bi bi-heart-pulse-fill text-danger"></i> MediCare HMS</h4>
+      <p class="text-muted small mb-4">Hospital Patient Record System</p>
+      <form method="post">{% csrf_token %}
+        {% if form.errors %}<div class="alert alert-danger py-2">Invalid credentials.</div>{% endif %}
+        <div class="mb-3"><label class="form-label">Username</label>
+          <input class="form-control" name="username" required></div>
+        <div class="mb-3"><label class="form-label">Password</label>
+          <input type="password" class="form-control" name="password" required></div>
+        <button class="btn btn-primary w-100">Sign In</button>
+      </form>
+      <hr><small class="text-muted">Demo: admin / doctor1 / nurse1 / patient1 — password <code>password123</code></small>
+    </div>
+  </div>
+</div>
+{% endblock %}
