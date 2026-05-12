@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block content %}
+<div class="d-flex justify-content-between mb-3"><h4>Billing</h4>
+{% if is_admin %}<a href="{% url 'billing:create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New Bill</a>{% endif %}</div>
+<div class="card"><table class="table mb-0">
+<thead class="table-light"><tr><th>#</th><th>Patient</th><th>Description</th><th>Total</th><th>Balance</th><th>Status</th><th></th></tr></thead>
+<tbody>{% for b in bills %}<tr>
+  <td>#{{ b.pk }}</td><td>{{ b.patient.full_name }}</td><td>{{ b.description }}</td>
+  <td>${{ b.total_due }}</td><td>${{ b.balance }}</td>
+  <td><span class="badge bg-{% if b.status == 'paid' %}success{% elif b.status == 'partial' %}warning{% else %}danger{% endif %}">{{ b.get_status_display }}</span></td>
+  <td><a class="btn btn-sm btn-outline-primary" href="{% url 'billing:detail' b.pk %}">Open</a></td>
+</tr>{% empty %}<tr><td colspan="7" class="text-muted text-center py-3">No bills.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

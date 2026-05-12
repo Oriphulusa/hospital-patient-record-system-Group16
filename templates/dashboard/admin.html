@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block content %}
+<h3 class="mb-4">Admin Overview</h3>
+<div class="row g-3">
+  <div class="col-md-3"><div class="card p-3"><div class="text-muted small">Patients</div><div class="stat">{{ patients_count }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><div class="text-muted small">Appointments Today</div><div class="stat">{{ appts_today }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><div class="text-muted small">Beds Occupied</div><div class="stat">{{ beds_occupied }} / {{ beds_total }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><div class="text-muted small">Unpaid Bills</div><div class="stat text-warning">{{ unpaid_bills }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><div class="text-muted small">Low Stock Meds</div><div class="stat text-danger">{{ low_stock }}</div></div></div>
+</div>
+<div class="mt-4">
+  <a href="{% url 'patients:create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New Patient</a>
+  <a href="{% url 'appointments:create' %}" class="btn btn-outline-primary">New Appointment</a>
+  <a href="{% url 'billing:create' %}" class="btn btn-outline-primary">New Bill</a>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}{% block content %}
+<h4>Consultation #{{ c.pk }}</h4>
+<div class="card p-3 mb-3">
+  <div><strong>Patient:</strong> <a href="{% url 'patients:detail' c.patient.pk %}">{{ c.patient.full_name }}</a></div>
+  <div><strong>Doctor:</strong> {{ c.doctor.get_full_name|default:c.doctor.username }}</div>
+  <div><strong>Date:</strong> {{ c.created_at|date:"M d, Y H:i" }}</div>
+  <hr><div><strong>Chief complaint:</strong> {{ c.chief_complaint }}</div>
+  <div><strong>Diagnosis:</strong> {{ c.diagnosis }}</div>
+  <div><strong>Treatment plan:</strong> {{ c.treatment_plan|default:'—' }}</div>
+  <div><strong>Notes:</strong> {{ c.notes|default:'—' }}</div>
+</div>
+<div class="row g-3">
+  <div class="col-md-6"><div class="card p-3"><h6>Prescriptions
+    {% if is_doctor %}<a class="btn btn-sm btn-outline-primary float-end" href="{% url 'pharmacy:prescribe' c.pk %}">+ Add</a>{% endif %}</h6>
+    {% for p in prescriptions %}<div class="border-bottom py-2">
+      {{ p.medication.name }} — {{ p.dosage }} — {{ p.frequency }} (qty {{ p.quantity }})
+      {% if p.dispensed %}<span class="badge bg-success">Dispensed</span>
+      {% elif is_doctor %}<a class="btn btn-sm btn-outline-success float-end" href="{% url 'pharmacy:dispense' p.pk %}">Dispense</a>{% endif %}
+    </div>{% empty %}<div class="text-muted">None.</div>{% endfor %}</div></div>
+  <div class="col-md-6"><div class="card p-3"><h6>Lab Orders
+    {% if is_doctor %}<a class="btn btn-sm btn-outline-primary float-end" href="{% url 'laboratory:order_create' c.pk %}">+ Order</a>{% endif %}</h6>
+    {% for o in lab_orders %}<div class="border-bottom py-2">
+      {{ o.test.name }} — <span class="badge bg-secondary">{{ o.get_status_display }}</span>
+      {% if o.status == 'completed' %}<div class="small text-muted">{{ o.result }}</div>
+      {% elif is_doctor or is_admin %}<a class="btn btn-sm btn-outline-success float-end" href="{% url 'laboratory:order_complete' o.pk %}">Enter Result</a>{% endif %}
+    </div>{% empty %}<div class="text-muted">None.</div>{% endfor %}</div></div>
+</div>
+{% endblock %}
