@@ -7,14 +7,21 @@ class Ward(models.Model):
     description = models.CharField(max_length=200, blank=True)
     daily_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     def __str__(self): return self.name
+     class Meta:
+        managed = False
+        db_table = 'wards_ward'
+
 
 class Bed(models.Model):
     ward = models.ForeignKey(Ward, on_delete=models.CASCADE, related_name='beds')
     number = models.CharField(max_length=10)
     is_occupied = models.BooleanField(default=False)
-    class Meta: unique_together=('ward','number')
+    class Meta:
+        unique_together=('ward','number')
+         managed = False
+        db_table = 'wards_bed'
     def __str__(self): return f'{self.ward.name} - Bed {self.number}'
-
+    
 class Admission(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='admissions')
     bed = models.ForeignKey(Bed, on_delete=models.PROTECT, related_name='admissions')
@@ -23,6 +30,9 @@ class Admission(models.Model):
     admitted_at = models.DateTimeField(auto_now_add=True)
     discharged_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
-    class Meta: ordering=['-admitted_at']
+    class Meta: 
+       ordering=['-admitted_at']
+        managed = False
+        db_table = 'wards_admission'
     @property
     def is_active(self): return self.discharged_at is None
