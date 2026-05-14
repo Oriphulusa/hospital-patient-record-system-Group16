@@ -10,7 +10,10 @@ class Consultation(models.Model):
     treatment_plan = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: ordering=['-created_at']
+    class Meta:
+        ordering=['-created_at']
+        managed = False
+        db_table = 'consultations_consultation'
     def __str__(self): return f'Consult #{self.pk} - {self.patient}'
 
 class Vitals(models.Model):
@@ -26,4 +29,8 @@ class Vitals(models.Model):
     height_cm = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
     notes = models.TextField(blank=True)
     recorded_at = models.DateTimeField(auto_now_add=True)
-    class Meta: ordering=['-recorded_at']
+    class Meta: 
+        ordering=['-recorded_at']
+        managed = False
+        db_table = 'consultations_vitals'
+
