@@ -16,3 +16,8 @@ db.sqlite3
 # Backup files
 *.backup
 requirements_broken_backup.txt
+
+# Editor and media folders
+.idea/
+.vscode/
+media/

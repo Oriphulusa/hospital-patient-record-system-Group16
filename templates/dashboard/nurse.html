@@ -1,0 +1,14 @@
+{% extends 'base.html' %}{% block content %}
+<h3 class="mb-3">Nurse Dashboard</h3>
+<div class="row g-3">
+  <div class="col-md-6"><div class="card p-3"><h6>Active Admissions</h6>
+    <ul class="list-unstyled mb-0">{% for a in admissions %}
+      <li class="border-bottom py-2"><a href="{% url 'patients:detail' a.patient.pk %}">{{ a.patient.full_name }}</a> — {{ a.bed }}
+        <a class="btn btn-sm btn-outline-primary float-end" href="{% url 'consultations:vitals_create' a.patient.pk %}">Record Vitals</a></li>
+    {% empty %}<li class="text-muted">No admitted patients.</li>{% endfor %}</ul></div></div>
+  <div class="col-md-6"><div class="card p-3"><h6>Recent Patients</h6>
+    <ul class="list-unstyled mb-0">{% for p in patients %}
+      <li class="border-bottom py-2"><a href="{% url 'patients:detail' p.pk %}">{{ p.full_name }}</a> <span class="text-muted small">{{ p.mrn }}</span></li>
+    {% endfor %}</ul></div></div>
+</div>
+{% endblock %}

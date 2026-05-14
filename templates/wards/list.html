@@ -1,0 +1,22 @@
+{% extends 'base.html' %}{% block content %}
+<div class="d-flex justify-content-between mb-3"><h4>Wards & Beds</h4>
+<div>{% if is_admin %}<a href="{% url 'wards:ward_create' %}" class="btn btn-outline-primary btn-sm">+ Ward</a>
+<a href="{% url 'wards:bed_create' %}" class="btn btn-outline-primary btn-sm">+ Bed</a>{% endif %}
+{% if is_admin or is_doctor %}<a href="{% url 'wards:admit' %}" class="btn btn-primary btn-sm">Admit Patient</a>{% endif %}</div></div>
+<div class="row g-3">
+{% for w in wards %}<div class="col-md-6"><div class="card p-3">
+  <h6>{{ w.name }} <small class="text-muted">${{ w.daily_rate }}/day</small></h6>
+  <div class="d-flex flex-wrap gap-2">{% for b in w.beds.all %}
+    <span class="badge {% if b.is_occupied %}bg-danger{% else %}bg-success{% endif %}">Bed {{ b.number }}</span>
+  {% empty %}<span class="text-muted small">No beds.</span>{% endfor %}</div>
+</div></div>{% endfor %}
+</div>
+<h5 class="mt-4">Active Admissions</h5>
+<div class="card"><table class="table mb-0">
+<thead class="table-light"><tr><th>Patient</th><th>Bed</th><th>Doctor</th><th>Admitted</th><th>Reason</th><th></th></tr></thead>
+<tbody>{% for a in admissions %}<tr>
+  <td>{{ a.patient.full_name }}</td><td>{{ a.bed }}</td><td>{{ a.doctor.get_full_name|default:a.doctor.username }}</td>
+  <td>{{ a.admitted_at|date:"M d, H:i" }}</td><td>{{ a.reason }}</td>
+  <td>{% if is_admin or is_doctor %}<a class="btn btn-sm btn-outline-warning" href="{% url 'wards:discharge' a.pk %}">Discharge</a>{% endif %}</td>
+</tr>{% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No active admissions.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

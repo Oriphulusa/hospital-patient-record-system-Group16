@@ -1,0 +1,66 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Hospital System{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+  body{background:#f6f8fb;}
+  .sidebar{min-height:100vh;background:#0f172a;color:#cbd5e1;}
+  .sidebar a{color:#cbd5e1;text-decoration:none;display:block;padding:.55rem .9rem;border-radius:.4rem;margin:.1rem .4rem;font-size:.92rem;}
+  .sidebar a:hover,.sidebar a.active{background:#1e293b;color:#fff;}
+  .sidebar .brand{padding:1rem;font-weight:700;color:#fff;letter-spacing:.5px;border-bottom:1px solid #1e293b;}
+  .sidebar h6{color:#64748b;font-size:.7rem;text-transform:uppercase;padding:.8rem 1rem .3rem;letter-spacing:1px;}
+  .topbar{background:#fff;border-bottom:1px solid #e2e8f0;}
+  .card{border:1px solid #e2e8f0;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .stat{font-size:1.8rem;font-weight:600;}
+</style>
+</head>
+<body>
+{% if user.is_authenticated %}
+<div class="d-flex">
+  <nav class="sidebar" style="width:230px;">
+    <div class="brand"><i class="bi bi-heart-pulse-fill text-danger"></i> MediCare HMS</div>
+    <a href="{% url 'home' %}"><i class="bi bi-grid"></i> Dashboard</a>
+    <h6>Records</h6>
+    <a href="{% url 'patients:list' %}"><i class="bi bi-person-vcard"></i> Patients</a>
+    <a href="{% url 'appointments:list' %}"><i class="bi bi-calendar2-week"></i> Appointments</a>
+    <a href="{% url 'consultations:list' %}"><i class="bi bi-clipboard2-pulse"></i> Consultations</a>
+    {% if is_admin or is_doctor %}
+    <h6>Clinical</h6>
+    <a href="{% url 'pharmacy:med_list' %}"><i class="bi bi-capsule"></i> Pharmacy</a>
+    <a href="{% url 'laboratory:test_list' %}"><i class="bi bi-flask"></i> Laboratory</a>
+    {% endif %}
+    <h6>Operations</h6>
+    <a href="{% url 'wards:list' %}"><i class="bi bi-hospital"></i> Wards & Beds</a>
+    <a href="{% url 'billing:list' %}"><i class="bi bi-receipt"></i> Billing</a>
+    {% if is_admin %}
+    <a href="{% url 'insurance:provider_list' %}"><i class="bi bi-shield-check"></i> Insurance</a>
+    <h6>Admin</h6>
+    <a href="{% url 'accounts:user_list' %}"><i class="bi bi-people"></i> Users</a>
+    {% endif %}
+  </nav>
+  <div class="flex-grow-1">
+    <div class="topbar d-flex justify-content-between align-items-center px-4 py-2">
+      <div class="text-muted small">{{ user.get_role_display }}</div>
+      <div>
+        <span class="me-3"><i class="bi bi-person-circle"></i> {{ user.get_full_name|default:user.username }}</span>
+        <form action="{% url 'accounts:logout' %}" method="post" class="d-inline">{% csrf_token %}
+          <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-right"></i> Logout</button>
+        </form>
+      </div>
+    </div>
+    <main class="p-4">
+      {% if messages %}{% for m in messages %}
+        <div class="alert alert-{{ m.tags|default:'info' }} py-2">{{ m }}</div>
+      {% endfor %}{% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+  {% block anon %}{% endblock %}
+{% endif %}
+</body></html>

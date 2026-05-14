@@ -1,0 +1,34 @@
+{% extends 'base.html' %}{% block content %}
+<h4>Bill #{{ b.pk }} — {{ b.patient.full_name }}</h4>
+<div class="card p-3 mb-3">
+  <div><strong>Description:</strong> {{ b.description }}</div>
+  <div><strong>Insurance:</strong> {% if b.insurance %}{{ b.insurance.provider.name }} ({{ b.insurance.effective_coverage }}%){% else %}None{% endif %}</div>
+  <div><strong>Status:</strong> {{ b.get_status_display }}</div>
+</div>
+<div class="row g-3">
+  <div class="col-md-7"><div class="card p-3"><h6>Items</h6>
+    <table class="table table-sm mb-2"><thead><tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+    <tbody>{% for i in b.items.all %}<tr><td>{{ i.description }}</td><td>{{ i.quantity }}</td><td>${{ i.unit_price }}</td><td>${{ i.line_total }}</td></tr>
+    {% empty %}<tr><td colspan="4" class="text-muted">No items.</td></tr>{% endfor %}</tbody></table>
+    {% if is_admin %}<form method="post" action="{% url 'billing:add_item' b.pk %}">{% csrf_token %}
+      <div class="row g-2"><div class="col">{{ item_form.description }}</div><div class="col-2">{{ item_form.quantity }}</div>
+      <div class="col-3">{{ item_form.unit_price }}</div><div class="col-auto"><button class="btn btn-primary btn-sm">Add</button></div></div>
+    </form>{% endif %}</div></div>
+  <div class="col-md-5">
+    <div class="card p-3 mb-3"><h6>Summary</h6>
+      <div class="d-flex justify-content-between"><span>Subtotal</span><span>${{ b.subtotal }}</span></div>
+      <div class="d-flex justify-content-between"><span>Insurance Coverage</span><span>−${{ b.insurance_coverage }}</span></div>
+      <div class="d-flex justify-content-between fw-bold"><span>Patient Due</span><span>${{ b.total_due }}</span></div>
+      <div class="d-flex justify-content-between"><span>Paid</span><span>${{ b.total_paid }}</span></div>
+      <hr><div class="d-flex justify-content-between fw-bold"><span>Balance</span><span class="text-danger">${{ b.balance }}</span></div>
+    </div>
+    <div class="card p-3"><h6>Payments</h6>
+    {% for p in b.payments.all %}<div class="border-bottom py-2">${{ p.amount }} — {{ p.get_method_display }} — {{ p.paid_at|date:"M d" }}</div>
+    {% empty %}<div class="text-muted">None.</div>{% endfor %}
+    {% if is_admin %}<form method="post" action="{% url 'billing:add_payment' b.pk %}" class="mt-2">{% csrf_token %}
+      <div class="row g-2"><div class="col">{{ pay_form.amount }}</div><div class="col">{{ pay_form.method }}</div>
+      <div class="col-auto"><button class="btn btn-success btn-sm">Pay</button></div></div></form>{% endif %}</div>
+  </div>
+</div>
+<script>document.querySelectorAll('input,select,textarea').forEach(el=>{if(el.type!=='submit')el.classList.add('form-control','form-control-sm');});</script>
+{% endblock %}
