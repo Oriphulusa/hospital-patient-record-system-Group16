@@ -5,6 +5,9 @@ class LabTest(models.Model):
     name = models.CharField(max_length=120, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     def __str__(self): return self.name
+     class Meta:
+        managed = False
+        db_table = 'laboratory_labtest'
 
 class LabOrder(models.Model):
     STATUS=[('ordered','Ordered'),('completed','Completed')]
@@ -14,3 +17,6 @@ class LabOrder(models.Model):
     result = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    class Meta:
+        managed = False
+        db_table = 'laboratory_laborder'
