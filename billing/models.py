@@ -10,7 +10,11 @@ class Bill(models.Model):
     description = models.CharField(max_length=200, default='Hospital services')
     status = models.CharField(max_length=15, choices=STATUS, default='unpaid')
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: ordering=['-created_at']
+    class Meta:
+        ordering=['-created_at']
+          managed = False
+        db_table = 'billing_bill'
+
 
     def subtotal(self):
         return sum((i.line_total() for i in self.items.all()), Decimal('0'))
@@ -37,7 +41,10 @@ class BillItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     def line_total(self): return self.quantity * self.unit_price
-
+    class Meta:
+        managed = False
+        db_table = 'billing_billitem'
+        
 class Payment(models.Model):
     METHODS=[('cash','Cash'),('card','Card'),('insurance','Insurance'),('transfer','Bank Transfer')]
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name='payments')
@@ -45,3 +52,8 @@ class Payment(models.Model):
     method = models.CharField(max_length=15, choices=METHODS, default='cash')
     paid_at = models.DateTimeField(auto_now_add=True)
     reference = models.CharField(max_length=80, blank=True)
+proof_of_payment = models.FileField(upload_to='payment_proofs/', blank=True, null=True)
+    verified = models.BooleanField(default=False)
+    class Meta:
+        managed = False
+        db_table = 'billing_payment'

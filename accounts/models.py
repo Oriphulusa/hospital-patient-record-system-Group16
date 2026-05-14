@@ -15,3 +15,6 @@ class User(AbstractUser):
     def is_doctor(self): return self.role == self.Role.DOCTOR
     def is_nurse(self): return self.role == self.Role.NURSE
     def is_patient(self): return self.role == self.Role.PATIENT
+     class Meta:
+        managed = False
+        db_table = 'accounts_user'
