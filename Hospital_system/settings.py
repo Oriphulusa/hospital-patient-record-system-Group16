@@ -34,11 +34,11 @@ import os as os_os
 DATABASES = {
     'default':{
         'ENGINE': 'django.db.backend.postgresql',
-        'NAME':     _os.environ.get('DB_NAME',     'hospital_db'),
-        'USER':     _os.environ.get('DB_USER'      'postgres'),
-        'PASSWORD': _os.environ.get('DB_PASSWORD', 'postgres'),
-        'HOST':     _os.environ.get('DB_HOST',     'localhost'),
-        'PORT':     _os.environ.get('DB_PORT',     '5432'),
+        'NAME':     os_os.environ.get('DB_NAME',     'hospital_db'),
+        'USER':     os_os.environ.get('DB_USER'      'postgres'),
+        'PASSWORD': os_os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST':     os_os.environ.get('DB_HOST',     'localhost'),
+        'PORT':     os_os.environ.get('DB_PORT',     '5432'),
     }
 }
 AUTH_USER_MODEL = 'accounts.User'
