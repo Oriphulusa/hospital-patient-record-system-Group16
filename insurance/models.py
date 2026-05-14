@@ -6,6 +6,10 @@ class InsuranceProvider(models.Model):
     contact = models.CharField(max_length=120, blank=True)
     coverage_percent = models.PositiveIntegerField(default=0, help_text='Default % covered')
     def __str__(self): return self.name
+     class Meta:
+        managed = False
+        db_table = 'insurance_insuranceprovider'
+
 
 class PatientInsurance(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='insurances')
@@ -17,3 +21,6 @@ class PatientInsurance(models.Model):
     def effective_coverage(self):
         return self.coverage_percent or self.provider.coverage_percent
     def __str__(self): return f'{self.patient} - {self.provider.name}'
+     class Meta:
+        managed = False
+        db_table = 'insurance_patientinsurance'
