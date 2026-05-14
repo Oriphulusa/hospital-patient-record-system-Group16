@@ -30,11 +30,21 @@ TEMPLATES = [{
     ]},
 }]
 WSGI_APPLICATION = 'hospital_system.wsgi.application'
-DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': BASE_DIR / 'db.sqlite3'}}
+import os as os_os
+DATABASES = {
+    'default':{
+        'ENGINE': 'django.db.backend.postgresql',
+        'NAME':     _os.environ.get('DB_NAME',     'hospital_db'),
+        'USER':     _os.environ.get('DB_USER'      'postgres'),
+        'PASSWORD': _os.environ.get('DB_PASSWORD', 'postgres'),
+        'HOST':     _os.environ.get('DB_HOST',     'localhost'),
+        'PORT':     _os.environ.get('DB_PORT',     '5432'),
+    }
+}
 AUTH_USER_MODEL = 'accounts.User'
 LANGUAGE_CODE = 'en-us'; TIME_ZONE = 'UTC'; USE_I18N = True; USE_TZ = True
 STATIC_URL = 'static/'; STATICFILES_DIRS = [BASE_DIR / 'static']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/dashboard'
+LOGOUT_REDIRECT_URL = '/'
