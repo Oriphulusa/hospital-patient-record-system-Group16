@@ -1,7 +1,9 @@
 from django import forms
 from .models import Appointment
 from accounts.models import User
-class AppointmentForm(forms.ModelForm):
+
+class AppointmentsForm(forms.ModelForm):
+ class AppointmentForm(forms.ModelForm):
     class Meta:
         model = Appointment
         fields = ['patient','doctor','scheduled_for','reason','status','notes']
@@ -9,4 +11,5 @@ class AppointmentForm(forms.ModelForm):
                    'notes': forms.Textarea(attrs={'rows':2})}
     def __init__(self,*a,**k):
         super().__init__(*a,**k)
-        self.fields['doctor'].queryset = User.objects.filter(role='doctor')
+        self.fields['doctor'].queryset = User.objects.filter(role='doctor')   
+
