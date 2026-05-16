@@ -4,14 +4,20 @@ from patients.models import Patient
 
 class Consultation(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='consultations')
-    doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='consultations', limit_choices_to={'role':'doctor'})
+    doctor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='consultations', limit_choices_to={'role': 'doctor'})
     chief_complaint = models.CharField(max_length=255)
     diagnosis = models.TextField()
     treatment_plan = models.TextField(blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: ordering=['-created_at']
-    def __str__(self): return f'Consult #{self.pk} - {self.patient}'
+
+    class Meta:
+        ordering = ['-created_at']
+        managed = False
+        db_table = 'consultations_consultation'
+
+    def __str__(self):
+        return f'Consult #{self.pk} - {self.patient}'
 
 class Vitals(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='vitals')
@@ -26,4 +32,8 @@ class Vitals(models.Model):
     height_cm = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True)
     notes = models.TextField(blank=True)
     recorded_at = models.DateTimeField(auto_now_add=True)
-    class Meta: ordering=['-recorded_at']
+
+    class Meta:
+        ordering = ['-recorded_at']
+        managed = False
+        db_table = 'consultations_vitals'
