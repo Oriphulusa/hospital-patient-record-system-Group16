@@ -1,5 +1,7 @@
 {% extends 'base.html' %}{% block content %}
 <h4>Consultation #{{ c.pk }}</h4>
+<p class="text-muted">UI updated for improved workflow</p>
+
 <div class="card p-3 mb-3">
   <div><strong>Patient:</strong> <a href="{% url 'patients:detail' c.patient.pk %}">{{ c.patient.full_name }}</a></div>
   <div><strong>Doctor:</strong> {{ c.doctor.get_full_name|default:c.doctor.username }}</div>
