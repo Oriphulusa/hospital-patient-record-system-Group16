@@ -1,34 +1,7 @@
-{% extends 'base.html' %}{% block content %}
-<div class="d-flex justify-content-between mb-3">
-  <h4>{{ p.full_name }} <span class="text-muted small">{{ p.mrn }}</span></h4>
-  <div>
-    {% if is_admin %}<a class="btn btn-outline-primary btn-sm" href="{% url 'patients:edit' p.pk %}">Edit</a>{% endif %}
-    {% if is_nurse or is_doctor or is_admin %}<a class="btn btn-outline-primary btn-sm" href="{% url 'consultations:vitals_create' p.pk %}">Record Vitals</a>{% endif %}
-  </div>
-</div>
-<div class="row g-3">
-  <div class="col-md-4"><div class="card p-3">
-    <div><strong>DOB:</strong> {{ p.date_of_birth }}</div>
-    <div><strong>Gender:</strong> {{ p.get_gender_display }}</div>
-    <div><strong>Blood:</strong> {{ p.blood_group|default:'—' }}</div>
-    <div><strong>Phone:</strong> {{ p.phone|default:'—' }}</div>
-    <div><strong>Emergency:</strong> {{ p.emergency_contact|default:'—' }}</div>
-    <div><strong>Allergies:</strong> {{ p.allergies|default:'None recorded' }}</div>
-    <div><strong>Address:</strong> {{ p.address|default:'—' }}</div>
-  </div></div>
-  <div class="col-md-8">
-    <div class="card p-3 mb-3"><h6>Recent Consultations</h6>
-      {% for c in consultations %}<div class="border-bottom py-2"><a href="{% url 'consultations:detail' c.pk %}">{{ c.created_at|date:"M d, Y" }}</a> — {{ c.diagnosis|truncatechars:80 }}</div>
-      {% empty %}<div class="text-muted">No consultations.</div>{% endfor %}</div>
-    <div class="card p-3 mb-3"><h6>Appointments</h6>
-      {% for a in appointments %}<div class="border-bottom py-2">{{ a.scheduled_for|date:"M d, H:i" }} — Dr. {{ a.doctor.get_full_name }} <span class="badge bg-secondary">{{ a.get_status_display }}</span></div>
-      {% empty %}<div class="text-muted">No appointments.</div>{% endfor %}</div>
-    <div class="card p-3 mb-3"><h6>Admissions</h6>
-      {% for a in admissions %}<div class="border-bottom py-2">{{ a.bed }} — {{ a.admitted_at|date:"M d" }}{% if a.discharged_at %} → {{ a.discharged_at|date:"M d" }}{% else %} <span class="badge bg-success">Active</span>{% endif %}</div>
-      {% empty %}<div class="text-muted">No admissions.</div>{% endfor %}</div>
-    <div class="card p-3"><h6>Bills</h6>
-      {% for b in bills %}<div class="border-bottom py-2"><a href="{% url 'billing:detail' b.pk %}">Bill #{{ b.pk }}</a> — {{ b.get_status_display }} — Balance ${{ b.balance }}</div>
-      {% empty %}<div class="text-muted">No bills.</div>{% endfor %}</div>
-  </div>
-</div>
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head"><div><h1>{{ patient.FirstName }} {{ patient.LastName }}</h1><p>Patient ID {{ patient.PatientID }} · {{ patient.City }}, {{ patient.Province }}</p></div>{% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' %}<a class="btn" href="{% url 'appointment_new' %}">Book appointment</a>{% endif %}</div>
+<div class="cards"><div class="card"><h3>Profile</h3><p><b>DOB:</b> {{ patient.DateOfBirth }}</p><p><b>Gender:</b> {{ patient.Gender }}</p><p><b>Blood:</b> {{ patient.BloodType }}</p><p><b>Email:</b> {{ patient.Email }}</p><p><b>Phone:</b> {{ patient.Phone }}</p><p><b>Ward:</b> {{ patient.WardName|default:'Outpatient' }}</p></div><div class="card"><h3>Emergency contact</h3><p>{{ patient.EmergencyContactName }}</p><p>{{ patient.EmergencyContactPhone }}</p></div></div>
+<div class="grid2"><div class="table-card"><h2>Allergies</h2><table><tbody>{% for a in allergies %}<tr><td>{{ a.AllergyName }}</td><td>{{ a.Severity }}</td><td>{{ a.DateRecorded }}</td></tr>{% empty %}<tr><td>No allergies recorded.</td></tr>{% endfor %}</tbody></table></div><div class="table-card"><h2>Appointments</h2><table><tbody>{% for a in appointments %}<tr><td>{{ a.AppointmentDate }} {{ a.AppointmentTime }}</td><td>{{ a.doctor }}</td><td>{{ a.Status }}</td></tr>{% empty %}<tr><td>No appointments.</td></tr>{% endfor %}</tbody></table></div></div>
+{% if current_staff.Role == 'Admin' or current_staff.Role == 'BillingOfficer' %}<div class="table-card"><h2>Billing</h2><table><thead><tr><th>Bill</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead><tbody>{% for b in bills %}<tr><td>{{ b.BillingID }}</td><td>R{{ b.TotalAmount }}</td><td>R{{ b.AmountPaid }}</td><td>R{{ b.OutstandingBalance }}</td><td>{{ b.PaymentStatus }}</td></tr>{% empty %}<tr><td colspan="5">No billing records.</td></tr>{% endfor %}</tbody></table></div>{% endif %}
 {% endblock %}

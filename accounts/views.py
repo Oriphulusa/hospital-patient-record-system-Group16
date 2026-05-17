@@ -1,25 +1,45 @@
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import render, redirect, get_object_or_404
-from .forms import StaffCreateForm
-from .models import User
+from django.shortcuts import render, redirect
+from common.sql import rows
+from common.decorators import login_required_raw, role_required
 
-def admin_required(view):
-    return user_passes_test(lambda u: u.is_authenticated and u.is_admin())(view)
+STAFF_LOGIN_SQL = '''
+SELECT "UserID", "FirstName", "LastName", "Email", "Role"
+FROM "Staff"
+WHERE "IsActive"=TRUE AND (
+    lower("Email") = lower(%s)
+    OR lower("Role") = lower(%s)
+    OR lower("FirstName") = lower(%s)
+    OR lower("FirstName" || '.' || "LastName") = lower(%s)
+    OR lower(replace("Email", '@hprs.co.za', '')) = lower(%s)
+)
+ORDER BY "UserID" LIMIT 1;
+'''
 
-@login_required
-@admin_required
-def user_list(request):
-    users = User.objects.all().order_by('role','username')
-    return render(request, 'accounts/user_list.html', {'users': users})
+def login_view(request):
+    error=None
+    if request.method=='POST':
+        username=(request.POST.get('username') or '').strip()
+        password=request.POST.get('password') or ''
+        key=username.lower().replace(' ', '.')
+        if password != 'password123':
+            error='Invalid username or password. Demo password is password123.'
+        else:
+            result = rows(STAFF_LOGIN_SQL, [username, username, username, key, key])
+            if result:
+                request.session['staff']=result[0]
+                return redirect('dashboard')
+            error='No matching staff account was found. Please check the username or work email address.'
+    return render(request,'accounts/login.html',{'error':error})
 
-@login_required
-@admin_required
-def user_create(request):
-    if request.method == 'POST':
-        form = StaffCreateForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('accounts:user_list')
-    else:
-        form = StaffCreateForm()
-    return render(request, 'accounts/user_form.html', {'form': form})
+def logout_view(request):
+    request.session.flush()
+    return redirect('landing')
+
+@login_required_raw
+@role_required('Admin')
+def staff_list(request):
+    staff=rows('''
+        SELECT "UserID", "FirstName", "LastName", "Phone", "Email", "Role", "IsActive", "DateJoined"
+        FROM "Staff" ORDER BY "Role", "LastName";
+    ''')
+    return render(request,'accounts/staff_list.html',{'staff':staff})

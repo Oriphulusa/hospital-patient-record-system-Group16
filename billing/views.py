@@ -1,44 +1,33 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Bill, BillItem, Payment
-from .forms import BillForm, BillItemForm, PaymentForm
+from django.shortcuts import render, redirect
+from common.decorators import login_required_raw, role_required
+from common.sql import rows, execute
 
-@login_required
-def bill_list(request):
-    u=request.user; qs=Bill.objects.select_related('patient','insurance')
-    if u.is_patient(): qs=qs.filter(patient__user=u)
-    return render(request,'billing/list.html',{'bills':qs})
+@login_required_raw
+@role_required('Admin','BillingOfficer')
+def billing_list(request):
+    bills=rows('''
+        SELECT b."BillingID", b."BillDate", b."TotalAmount", b."AmountPaid", b."OutstandingBalance", b."PaymentStatus",
+               CONCAT(p."FirstName", ' ', p."LastName") AS patient, ma."SchemeName", ma."MemberNumber"
+        FROM "Billing" b
+        JOIN "Patient" p ON b."PatientID"=p."PatientID"
+        LEFT JOIN "Medical_Aid" ma ON b."MedicalAidID"=ma."MedicalAidID"
+        ORDER BY b."BillDate" DESC, b."BillingID" DESC;
+    ''')
+    logs=rows('SELECT * FROM "BillingLog" ORDER BY "CreatedAt" DESC LIMIT 20')
+    return render(request,'billing/list.html',{'bills':bills,'logs':logs})
 
-@login_required
-def bill_create(request):
-    if not request.user.is_admin(): return redirect('billing:list')
-    form=BillForm(request.POST or None)
-    if form.is_valid():
-        b=form.save(); return redirect('billing:detail', pk=b.pk)
-    return render(request,'billing/form.html',{'form':form,'title':'New Bill'})
-
-@login_required
-def bill_detail(request, pk):
-    b=get_object_or_404(Bill, pk=pk)
-    u=request.user
-    if u.is_patient() and b.patient.user_id != u.id: return redirect('billing:list')
-    return render(request,'billing/detail.html',{'b':b,
-        'item_form':BillItemForm(), 'pay_form':PaymentForm()})
-
-@login_required
-def add_item(request, pk):
-    if not request.user.is_admin(): return redirect('billing:detail', pk=pk)
-    b=get_object_or_404(Bill, pk=pk)
-    form=BillItemForm(request.POST or None)
-    if form.is_valid():
-        i=form.save(commit=False); i.bill=b; i.save(); b.refresh_status()
-    return redirect('billing:detail', pk=pk)
-
-@login_required
-def add_payment(request, pk):
-    if not request.user.is_admin(): return redirect('billing:detail', pk=pk)
-    b=get_object_or_404(Bill, pk=pk)
-    form=PaymentForm(request.POST or None)
-    if form.is_valid():
-        p=form.save(commit=False); p.bill=b; p.save(); b.refresh_status()
-    return redirect('billing:detail', pk=pk)
+@login_required_raw
+@role_required('Admin','BillingOfficer')
+def record_payment(request, billing_id):
+    if request.method=='POST':
+        amount=request.POST.get('amount') or '0'
+        execute('''
+            UPDATE "Billing"
+            SET "AmountPaid" = LEAST("TotalAmount", "AmountPaid" + %s::numeric),
+                "PaymentStatus" = CASE
+                    WHEN LEAST("TotalAmount", "AmountPaid" + %s::numeric) = "TotalAmount" THEN 'Paid'
+                    WHEN LEAST("TotalAmount", "AmountPaid" + %s::numeric) > 0 THEN 'Partial Payment'
+                    ELSE "PaymentStatus" END
+            WHERE "BillingID"=%s
+        ''',[amount, amount, amount, billing_id])
+    return redirect('billing_list')

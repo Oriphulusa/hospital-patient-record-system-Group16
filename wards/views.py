@@ -1,42 +1,27 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.utils import timezone
-from .models import Ward, Bed, Admission
-from .forms import WardForm, BedForm, AdmissionForm
+from django.shortcuts import render
+from common.decorators import login_required_raw, role_required
+from common.sql import rows
 
-@login_required
+@login_required_raw
+@role_required('Admin','Receptionist','Doctor','Nurse')
 def ward_list(request):
-    return render(request,'wards/list.html',{'wards':Ward.objects.prefetch_related('beds').all(),
-        'admissions':Admission.objects.filter(discharged_at__isnull=True).select_related('patient','bed','bed__ward','doctor')})
-
-@login_required
-def ward_create(request):
-    if not request.user.is_admin(): return redirect('wards:list')
-    form=WardForm(request.POST or None)
-    if form.is_valid(): form.save(); return redirect('wards:list')
-    return render(request,'wards/form.html',{'form':form,'title':'New Ward'})
-
-@login_required
-def bed_create(request):
-    if not request.user.is_admin(): return redirect('wards:list')
-    form=BedForm(request.POST or None)
-    if form.is_valid(): form.save(); return redirect('wards:list')
-    return render(request,'wards/form.html',{'form':form,'title':'New Bed'})
-
-@login_required
-def admit(request):
-    if not (request.user.is_admin() or request.user.is_doctor()): return redirect('wards:list')
-    form=AdmissionForm(request.POST or None)
-    if form.is_valid():
-        a=form.save(); a.bed.is_occupied=True; a.bed.save()
-        return redirect('wards:list')
-    return render(request,'wards/form.html',{'form':form,'title':'Admit Patient'})
-
-@login_required
-def discharge(request, pk):
-    if not (request.user.is_admin() or request.user.is_doctor()): return redirect('wards:list')
-    a=get_object_or_404(Admission, pk=pk)
-    if a.discharged_at is None:
-        a.discharged_at=timezone.now(); a.save()
-        a.bed.is_occupied=False; a.bed.save()
-    return redirect('wards:list')
+    wards=rows('''
+        SELECT w."WardID", w."WardName", w."WardType", w."BedCapacity", w."Floor", w."Location",
+               COUNT(a."AdmissionID") FILTER (WHERE a."ActualDischargeDate" IS NULL) AS occupied,
+               (w."BedCapacity" - COUNT(a."AdmissionID") FILTER (WHERE a."ActualDischargeDate" IS NULL)) AS available
+        FROM "Ward" w LEFT JOIN "Admission" a ON w."WardID"=a."WardID"
+        GROUP BY w."WardID", w."WardName", w."WardType", w."BedCapacity", w."Floor", w."Location"
+        ORDER BY w."WardName";
+    ''')
+    nurses=rows('''
+        SELECT nw."WardID", w."WardName", CONCAT(s."FirstName", ' ', s."LastName") AS nurse, nw."ShiftType", nw."AssignmentDate"
+        FROM "Nurse_Ward" nw JOIN "Ward" w ON nw."WardID"=w."WardID" JOIN "Staff" s ON nw."UserID"=s."UserID"
+        ORDER BY w."WardName", nurse;
+    ''')
+    admissions=rows('''
+        SELECT a."AdmissionID", a."AdmissionDate", a."ExpectedDischargeDate", a."ActualDischargeDate", a."AdmissionType", a."BedNumber",
+               CONCAT(p."FirstName", ' ', p."LastName") AS patient, w."WardName"
+        FROM "Admission" a JOIN "Patient" p ON a."PatientID"=p."PatientID" JOIN "Ward" w ON a."WardID"=w."WardID"
+        ORDER BY a."AdmissionDate" DESC;
+    ''')
+    return render(request,'wards/list.html',{'wards':wards,'nurses':nurses,'admissions':admissions})

@@ -1,12 +1,7 @@
-{% extends 'base.html' %}{% block content %}
-<div class="d-flex justify-content-between mb-3"><h4>Billing</h4>
-{% if is_admin %}<a href="{% url 'billing:create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New Bill</a>{% endif %}</div>
-<div class="card"><table class="table mb-0">
-<thead class="table-light"><tr><th>#</th><th>Patient</th><th>Description</th><th>Total</th><th>Balance</th><th>Status</th><th></th></tr></thead>
-<tbody>{% for b in bills %}<tr>
-  <td>#{{ b.pk }}</td><td>{{ b.patient.full_name }}</td><td>{{ b.description }}</td>
-  <td>${{ b.total_due }}</td><td>${{ b.balance }}</td>
-  <td><span class="badge bg-{% if b.status == 'paid' %}success{% elif b.status == 'partial' %}warning{% else %}danger{% endif %}">{{ b.get_status_display }}</span></td>
-  <td><a class="btn btn-sm btn-outline-primary" href="{% url 'billing:detail' b.pk %}">Open</a></td>
-</tr>{% empty %}<tr><td colspan="7" class="text-muted text-center py-3">No bills.</td></tr>{% endfor %}</tbody></table></div>
+{% extends 'base.html' %}
+{% block content %}
+<h1>Billing</h1>
+<p>Manage patient billing, medical aid details, payments and outstanding balances.</p>
+<div class="table-card"><table><thead><tr><th>Bill</th><th>Patient</th><th>Total</th><th>Paid</th><th>Outstanding</th><th>Status</th><th>Medical Aid</th><th>Record payment</th></tr></thead><tbody>{% for b in bills %}<tr><td>{{ b.BillingID }}</td><td>{{ b.patient }}</td><td>R{{ b.TotalAmount }}</td><td>R{{ b.AmountPaid }}</td><td><b>R{{ b.OutstandingBalance }}</b></td><td><span class="tag">{{ b.PaymentStatus }}</span></td><td>{{ b.SchemeName|default:'None' }}<br><span class="muted">{{ b.MemberNumber }}</span></td><td><form method="post" action="{% url 'record_payment' b.BillingID %}" class="mini">{% csrf_token %}<input name="amount" placeholder="Amount" type="number" step="0.01"><button>Pay</button></form></td></tr>{% empty %}<tr><td colspan="8">No billing records found.</td></tr>{% endfor %}</tbody></table></div>
+<div class="table-card"><h2>Recent Payment Activity</h2><table><thead><tr><th>Reference</th><th>Bill</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Action</th><th>Time</th></tr></thead><tbody>{% for l in logs %}<tr><td>{{ l.BillingLogID }}</td><td>{{ l.BillingID }}</td><td>R{{ l.TotalAmount }}</td><td>R{{ l.AmountPaid }}</td><td>R{{ l.OutstandingBalance }}</td><td>{{ l.PaymentStatus }}</td><td>{{ l.LogAction }}</td><td>{{ l.CreatedAt }}</td></tr>{% empty %}<tr><td colspan="8">No recent payment activity.</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

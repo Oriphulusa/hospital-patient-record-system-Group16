@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    {% if current_staff.Role == 'Doctor' %}<p>Your appointment schedule and patient care overview.</p>{% elif current_staff.Role == 'Nurse' %}<p>Ward, admission and care coordination overview.</p>{% elif current_staff.Role == 'Receptionist' %}<p>Patient registration and appointment desk overview.</p>{% elif current_staff.Role == 'BillingOfficer' %}<p>Billing and outstanding payment overview.</p>{% else %}<p>Overview of today’s hospital activity, patient care and billing status.</p>{% endif %}
+  </div>
+  {% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' %}<a class="btn" href="{% url 'appointment_new' %}">Book Appointment</a>{% endif %}
+</div>
+<div class="stats">
+  <div class="stat"><b>{{ stats.patients }}</b><span>Patients</span></div>
+  {% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' %}<div class="stat"><b>{{ stats.doctors }}</b><span>Doctors</span></div><div class="stat"><b>{{ stats.nurses }}</b><span>Nurses</span></div>{% endif %}
+  <div class="stat"><b>{{ stats.today_appointments }}</b><span>Today’s Appointments</span></div>
+  {% if current_staff.Role == 'Admin' or current_staff.Role == 'Nurse' or current_staff.Role == 'Doctor' or current_staff.Role == 'Receptionist' %}<div class="stat"><b>{{ stats.active_admissions }}</b><span>Active Admissions</span></div>{% endif %}
+  {% if current_staff.Role == 'Admin' or current_staff.Role == 'BillingOfficer' %}<div class="stat stat-money"><b>R{{ stats.outstanding }}</b><span>Outstanding Balance</span></div>{% endif %}
+</div>
+<div class="grid2">
+  <div class="table-card">
+    {% if current_staff.Role == 'Doctor' %}<h2>My Appointments</h2>{% else %}<h2>Recent Appointments</h2>{% endif %}
+    <table><thead><tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Status</th></tr></thead><tbody>{% for a in upcoming %}<tr><td>{{ a.AppointmentDate }}</td><td>{{ a.AppointmentTime }}</td><td>{{ a.patient }}</td><td>{{ a.doctor }}</td><td><span class="tag">{{ a.Status }}</span></td></tr>{% empty %}<tr><td colspan="5">No appointments found.</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="table-card">
+    <h2>Operational Snapshot</h2>
+    <div class="snapshot">
+      <div><span class="muted">Registered Patients</span><b>{{ stats.patients }}</b></div>
+      {% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' %}<div><span class="muted">Clinical Staff</span><b>{{ stats.doctors|add:stats.nurses }}</b></div>{% endif %}
+      <div><span class="muted">Today’s Bookings</span><b>{{ stats.today_appointments }}</b></div>
+      <div><span class="muted">Active Admissions</span><b>{{ stats.active_admissions }}</b></div>
+      {% if current_staff.Role == 'Admin' or current_staff.Role == 'BillingOfficer' %}<div><span class="muted">Outstanding Balance</span><b>R{{ stats.outstanding }}</b></div>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
