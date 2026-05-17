@@ -1,47 +1,53 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Q
-from .models import Patient
-from .forms import PatientForm
+from django.shortcuts import render, redirect
+from common.decorators import login_required_raw, role_required
+from common.sql import rows, one, execute
 
+PATIENTS_SQL='''
+SELECT p."PatientID", p."FirstName", p."LastName", p."Gender", p."DateOfBirth", p."Phone", p."Email", p."City", p."Province", p."BloodType", w."WardName"
+FROM "Patient" p LEFT JOIN "Ward" w ON p."WardID"=w."WardID"
+ORDER BY p."PatientID";
+'''
+
+@login_required_raw
+@role_required('Admin','Receptionist','Doctor','Nurse','BillingOfficer','LabTechnician')
 def patient_list(request):
-    u = request.user
-    qs = Patient.objects.all()
-    if u.is_patient():
-        qs = qs.filter(user=u)
-    q = request.GET.get('q','').strip()
+    q=(request.GET.get('q') or '').strip()
     if q:
-        qs = qs.filter(Q(first_name__icontains=q)|Q(last_name__icontains=q)|Q(mrn__icontains=q))
-    return render(request, 'patients/list.html', {'patients': qs.order_by('-created_at'), 'q': q})
-
-def patient_detail(request, pk):
-    p = get_object_or_404(Patient, pk=pk)
-    u = request.user
-    if u.is_patient() and p.user_id != u.id:
-        return redirect('patients:list')
-    return render(request, 'patients/detail.html', {'p': p,
-        'consultations': p.consultations.all().order_by('-created_at'),
-        'appointments': p.appointments.all().order_by('-scheduled_for'),
-        'admissions': p.admissions.all().order_by('-admitted_at'),
-        'bills': p.bills.all().order_by('-created_at'),
-    })
-
-def patient_create(request):
-    if not (request.user.is_admin() or request.user.is_nurse()):
-        return redirect('patients:list')
-    if request.method == 'POST':
-        form = PatientForm(request.POST)
-        if form.is_valid():
-            form.save(); return redirect('patients:list')
+        data=rows('''
+            SELECT p."PatientID", p."FirstName", p."LastName", p."Gender", p."DateOfBirth", p."Phone", p."Email", p."City", p."Province", p."BloodType", w."WardName"
+            FROM "Patient" p LEFT JOIN "Ward" w ON p."WardID"=w."WardID"
+            WHERE lower(p."FirstName" || ' ' || p."LastName") LIKE lower(%s) OR lower(p."City") LIKE lower(%s) OR lower(COALESCE(p."Email",'')) LIKE lower(%s)
+            ORDER BY p."PatientID";
+        ''',[f'%{q}%',f'%{q}%',f'%{q}%'])
     else:
-        form = PatientForm()
-    return render(request, 'patients/form.html', {'form': form, 'title':'New Patient'})
+        data=rows(PATIENTS_SQL)
+    return render(request,'patients/list.html',{'patients':data,'q':q})
 
-def patient_edit(request, pk):
-    if not request.user.is_admin():
-        return redirect('patients:list')
-    p = get_object_or_404(Patient, pk=pk)
-    form = PatientForm(request.POST or None, instance=p)
-    if form.is_valid():
-        form.save(); return redirect('patients:detail', pk=pk)
-    return render(request, 'patients/form.html', {'form': form, 'title':'Edit Patient'})
+@login_required_raw
+@role_required('Admin','Receptionist','Doctor','Nurse','BillingOfficer','LabTechnician')
+def patient_detail(request, patient_id):
+    patient=one('''SELECT p.*, w."WardName" FROM "Patient" p LEFT JOIN "Ward" w ON p."WardID"=w."WardID" WHERE p."PatientID"=%s''',[patient_id])
+    allergies=rows('SELECT * FROM "Allergy" WHERE "PatientID"=%s ORDER BY "DateRecorded" DESC',[patient_id])
+    appointments=rows('''SELECT ap.*, CONCAT(s."FirstName", ' ', s."LastName") AS doctor FROM "Appointment" ap JOIN "Staff" s ON ap."DoctorID"=s."UserID" WHERE ap."PatientID"=%s ORDER BY ap."AppointmentDate" DESC''',[patient_id])
+    bills=rows('SELECT * FROM "Billing" WHERE "PatientID"=%s ORDER BY "BillDate" DESC',[patient_id])
+    return render(request,'patients/detail.html',{'patient':patient,'allergies':allergies,'appointments':appointments,'bills':bills})
+
+@login_required_raw
+@role_required('Admin','Receptionist')
+def patient_new(request):
+    wards=rows('SELECT "WardID", "WardName" FROM "Ward" ORDER BY "WardName"')
+    error=None
+    if request.method=='POST':
+        try:
+            execute('''
+                INSERT INTO "Patient" ("FirstName","LastName","DateOfBirth","Gender","Phone","Email","Street","City","Province","PostalCode","IDNumber","PassportNumber","BloodType","EmergencyContactName","EmergencyContactPhone","WardID")
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,NULL,%s,%s,%s,%s,NULLIF(%s,'')::integer)
+            ''',[
+                request.POST.get('first_name'), request.POST.get('last_name'), request.POST.get('dob'), request.POST.get('gender'), request.POST.get('phone') or None, request.POST.get('email') or None,
+                request.POST.get('street') or 'Demo Street', request.POST.get('city') or 'Mahikeng', request.POST.get('province') or 'North West', request.POST.get('postal_code') or '2745',
+                request.POST.get('passport') or ('PASS' + request.POST.get('phone','000000000')[-6:]), request.POST.get('blood_type') or None, request.POST.get('emergency_name') or None, request.POST.get('emergency_phone') or None, request.POST.get('ward_id') or ''
+            ])
+            return redirect('patient_list')
+        except Exception:
+            error='The patient could not be saved. Please check the entered details and try again.'
+    return render(request,'patients/form.html',{'wards':wards,'error':error})

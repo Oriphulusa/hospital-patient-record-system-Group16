@@ -1,23 +1,8 @@
-# Virtual environment
 venv/
-
-# Python cache files
 __pycache__/
+.DS_Store
 *.pyc
-
-# Environment variables / passwords
-.env
-.env.local
-
-# SQLite database files - not used because project uses PostgreSQL
-db.sqlite3
-*.sqlite3
-
-# Backup files
-*.backup
-requirements_broken_backup.txt
-
-# Editor and media folders
-.idea/
-.vscode/
-media/
+venv/
+__pycache__/
+.DS_Store
+*.pyc

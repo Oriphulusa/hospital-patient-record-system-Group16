@@ -1,12 +1,29 @@
-{% extends 'base.html' %}{% block content %}
-<div class="d-flex justify-content-between mb-3"><h4>Appointments</h4>
-{% if is_admin or is_doctor %}<a href="{% url 'appointments:create' %}" class="btn btn-primary"><i class="bi bi-plus"></i> New</a>{% endif %}</div>
-<div class="card"><table class="table mb-0">
-<thead class="table-light"><tr><th>When</th><th>Patient</th><th>Doctor</th><th>Reason</th><th>Status</th><th></th></tr></thead>
-<tbody>{% for a in appointments %}<tr>
-  <td>{{ a.scheduled_for|date:"M d, Y H:i" }}</td><td>{{ a.patient.full_name }}</td>
-  <td>{{ a.doctor.get_full_name|default:a.doctor.username }}</td><td>{{ a.reason }}</td>
-  <td><span class="badge bg-secondary">{{ a.get_status_display }}</span></td>
-  <td>{% if is_admin or user == a.doctor %}<a class="btn btn-sm btn-outline-primary" href="{% url 'appointments:edit' a.pk %}">Edit</a>{% endif %}</td>
-</tr>{% empty %}<tr><td colspan="6" class="text-muted text-center py-3">None.</td></tr>{% endfor %}</tbody></table></div>
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Appointments</h1>
+    {% if current_staff.Role == 'Doctor' %}
+      <p>View and manage your assigned patient appointments.</p>
+    {% elif current_staff.Role == 'Nurse' %}
+      <p>View scheduled patient appointments for care coordination.</p>
+    {% else %}
+      <p>View, filter and update scheduled patient appointments.</p>
+    {% endif %}
+  </div>
+  {% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' %}<a class="btn" href="{% url 'appointment_new' %}">Book appointment</a>{% endif %}
+</div>
+<form method="get" class="inline"><select name="status"><option value="">All statuses</option><option {% if status == 'Scheduled' %}selected{% endif %}>Scheduled</option><option {% if status == 'Completed' %}selected{% endif %}>Completed</option><option {% if status == 'Cancelled' %}selected{% endif %}>Cancelled</option><option {% if status == 'No-Show' %}selected{% endif %}>No-Show</option></select><button class="btn ghost">Filter</button></form>
+<div class="table-card">
+  <table>
+    <thead><tr><th>ID</th><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Reason</th><th>Status</th>{% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' or current_staff.Role == 'Doctor' %}<th>Update</th>{% endif %}</tr></thead>
+    <tbody>
+      {% for a in appointments %}
+        <tr><td>{{ a.AppointmentID }}</td><td>{{ a.AppointmentDate }}</td><td>{{ a.AppointmentTime }}</td><td>{{ a.patient }}</td><td>Dr {{ a.doctor }}<br><span class="muted">{{ a.Specialization }}</span></td><td>{{ a.Reason }}</td><td><span class="tag">{{ a.Status }}</span></td>{% if current_staff.Role == 'Admin' or current_staff.Role == 'Receptionist' or current_staff.Role == 'Doctor' %}<td><form method="post" action="{% url 'appointment_status' a.AppointmentID %}" class="mini">{% csrf_token %}<select name="status"><option>Scheduled</option><option>Completed</option><option>Cancelled</option><option>No-Show</option></select><button>Save</button></form></td>{% endif %}</tr>
+      {% empty %}
+        <tr><td colspan="8">No appointments found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

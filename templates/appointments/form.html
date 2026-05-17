@@ -1,1 +1,16 @@
-{% extends 'base.html' %}{% block content %}<h4>{{ title }}</h4><div class="card p-3">{% include '_form.html' %}</div>{% endblock %}
+{% extends 'base.html' %}
+{% block content %}
+<h1>Book Appointment</h1>
+<p>Create a patient appointment and notify the assigned doctor and patient.</p>
+{% if error %}<div class="alert">{{ error }}</div>{% endif %}
+<form method="post" class="form-grid">
+  {% csrf_token %}
+  <label>Patient<select name="patient_id" required>{% for p in patients %}<option value="{{ p.PatientID }}">{{ p.FirstName }} {{ p.LastName }} · {{ p.Email }}</option>{% endfor %}</select></label>
+  <label>Doctor<select name="doctor_id" required>{% for d in doctors %}<option value="{{ d.UserID }}">Dr {{ d.name }} · {{ d.Specialization }} · {{ d.Email }}</option>{% endfor %}</select></label>
+  <label>Date<input name="appointment_date" type="date" required></label>
+  <label>Time<input name="appointment_time" type="time" required></label>
+  <label>Receptionist<select name="receptionist_id"><option value="">None</option>{% for r in receptionists %}<option value="{{ r.UserID }}">{{ r.name }}</option>{% endfor %}</select></label>
+  <label>Reason<textarea name="reason">Routine check-up</textarea></label>
+  <button class="btn">Create appointment</button>
+</form>
+{% endblock %}

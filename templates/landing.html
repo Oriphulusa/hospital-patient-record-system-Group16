@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block public %}
+<section class="hero landing-hero">
+  <div class="hero-card hero-split hero-split-clean">
+    <div class="hero-copy">
+      <div class="kicker">Hospital Management System</div>
+      <h1>MediCare HMS</h1>
+      <p class="lead">A secure and easy-to-use platform for patient records, appointments, clinical care, wards, billing and hospital operations from one central dashboard.</p>
+      <div class="actions">
+        <a class="btn" href="{% url 'login' %}">Staff Login</a>
+        <a class="btn ghost" href="#features">View Features</a>
+      </div>
+    </div>
+    <div class="hero-panel" aria-label="MediCare HMS overview">
+      <div class="hero-panel-top">
+        <span class="pulse-heart">♥</span>
+        <div>
+          <strong>Care coordination</strong>
+          <span>For daily hospital teams</span>
+        </div>
+      </div>
+      <div class="hero-metric-row"><span>Patient records</span><b>Secure</b></div>
+      <div class="hero-metric-row"><span>Appointments</span><b>Managed</b></div>
+      <div class="hero-metric-row"><span>Wards & admissions</span><b>Visible</b></div>
+      <div class="hero-metric-row"><span>Billing status</span><b>Tracked</b></div>
+    </div>
+  </div>
+</section>
+<section id="features" class="feature-section">
+  <div class="feature-wrap">
+    <div class="section-head">
+      <h2>Designed for daily hospital work</h2>
+      <p class="muted">Staff can move from patient registration to appointments, clinical notes, ward admissions and billing without switching systems.</p>
+    </div>
+    <div class="cards">
+      <div class="card"><h3>Patient Records</h3><p>Register patients, view contact details, and access their hospital records quickly.</p></div>
+      <div class="card"><h3>Appointments</h3><p>Book appointments, assign doctors, and track daily schedules.</p></div>
+      <div class="card"><h3>Clinical Care</h3><p>View diagnoses, prescriptions, laboratory tests and admission information.</p></div>
+      <div class="card"><h3>Billing</h3><p>Track patient bills, payments, outstanding balances and billing history.</p></div>
+    </div>
+  </div>
+</section>
+{% endblock %}
