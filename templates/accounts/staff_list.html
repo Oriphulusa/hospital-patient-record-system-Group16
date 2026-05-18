@@ -1,1 +1,42 @@
-{% extends 'base.html' %}{% block content %}<div class="page-head"><div><h1>Staff</h1><p>View hospital staff members, roles and contact information.</p></div></div><div class="table-card"><table><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Email</th><th>Phone</th><th>Active</th></tr></thead><tbody>{% for s in staff %}<tr><td>{{ s.UserID }}</td><td>{{ s.FirstName }} {{ s.LastName }}</td><td><span class="tag">{{ s.Role }}</span></td><td>{{ s.Email }}</td><td>{{ s.Phone }}</td><td>{{ s.IsActive }}</td></tr>{% endfor %}</tbody></table></div>{% endblock %}
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Staff</h1>
+    <p>View hospital staff members, roles and contact information.</p>
+  </div>
+
+  {% if current_staff.Role == 'Admin' or current_staff.Role == 'ITManager' %}
+    <a class="btn" href="{% url 'staff_create' %}">Add Staff Member</a>
+  {% endif %}
+</div>
+
+<div class="table-card">
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Active</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for s in staff %}
+        <tr>
+          <td>{{ s.UserID }}</td>
+          <td>{{ s.FirstName }} {{ s.LastName }}</td>
+          <td><span class="tag">{{ s.Role }}</span></td>
+          <td>{{ s.Email }}</td>
+          <td>{{ s.Phone }}</td>
+          <td>{{ s.IsActive }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
