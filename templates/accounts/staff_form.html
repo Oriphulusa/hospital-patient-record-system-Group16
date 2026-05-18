@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Add Staff Member</h1>
+    <p class="muted">Create an internal hospital staff account. Public sign-up is disabled for security.</p>
+  </div>
+</div>
+
+{% if error %}<div class="message error">{{ error }}</div>{% endif %}
+
+<div class="card">
+  <form method="post" class="form-grid">
+    {% csrf_token %}
+
+    <div>
+      <label>First Name</label>
+      <input type="text" name="first_name" required>
+    </div>
+
+    <div>
+      <label>Last Name</label>
+      <input type="text" name="last_name" required>
+    </div>
+
+    <div>
+      <label>Email</label>
+      <input type="email" name="email" required>
+    </div>
+
+    <div>
+      <label>Phone</label>
+      <input type="text" name="phone" placeholder="+27821234567">
+    </div>
+
+    <div>
+      <label>Role</label>
+      <select name="role" required>
+        <option value="">Select role</option>
+        {% for role in allowed_roles %}
+          <option value="{{ role }}">{{ role }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label>Specialization</label>
+      <input type="text" name="specialization" placeholder="Required for Doctor">
+    </div>
+
+    <div>
+      <label>License Number</label>
+      <input type="text" name="license_number" placeholder="Required for Doctor">
+    </div>
+
+    <div>
+      <label>Years Experience</label>
+      <input type="number" name="years_experience" value="0" min="0">
+    </div>
+
+    <div>
+      <label>Department</label>
+      <select name="department_id">
+        <option value="">Select department for Doctor</option>
+        {% for department in departments %}
+          <option value="{{ department.DepartmentID }}">{{ department.DepartmentName }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div>
+      <label>Nurse Registration Number</label>
+      <input type="text" name="registration_no" placeholder="Required for Nurse">
+    </div>
+
+    <div>
+      <label>Nurse Grade</label>
+      <select name="nurse_grade">
+        <option value="">Select grade for Nurse</option>
+        <option value="Junior">Junior</option>
+        <option value="Staff Nurse">Staff Nurse</option>
+        <option value="Senior">Senior</option>
+        <option value="Matron">Matron</option>
+        <option value="Chief Nursing Officer">Chief Nursing Officer</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Desk Number</label>
+      <input type="text" name="desk_number" placeholder="For Receptionist">
+    </div>
+
+    <div>
+      <label>Desk Assignment</label>
+      <input type="text" name="desk_assignment" placeholder="For Receptionist">
+    </div>
+
+    <div>
+      <label>Employee Number</label>
+      <input type="text" name="employee_number" placeholder="Required for Lab Technician">
+    </div>
+
+    <div>
+      <label>Laboratory Section</label>
+      <input type="text" name="laboratory_section" placeholder="Required for Lab Technician">
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" type="submit">Create Staff Member</button>
+      <a class="btn ghost" href="{% url 'staff_list' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
